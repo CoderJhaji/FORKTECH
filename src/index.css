@@ -1,0 +1,292 @@
+@import "@fontsource/nunito/400.css";
+@import "@fontsource/nunito/500.css";
+@import "@fontsource/nunito/600.css";
+@import "@fontsource/nunito/700.css";
+@import "@fontsource/nunito/800.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RasSetu Design System - Modern Warmth */
+
+@layer base {
+  :root {
+    /* Core Colors - Warm Cream background */
+    --background: 40 100% 97%;
+    --foreground: 192 33% 23%;
+
+    /* Surface - Soft warm white */
+    --card: 40 60% 99%;
+    --card-foreground: 192 33% 23%;
+
+    --popover: 40 60% 99%;
+    --popover-foreground: 192 33% 23%;
+
+    /* Primary - Sunset Orange #F48C06 */
+    --primary: 36 95% 49%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Sage Green #81B29A */
+    --secondary: 152 27% 59%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted */
+    --muted: 36 20% 90%;
+    --muted-foreground: 192 15% 46%;
+
+    /* Accent */
+    --accent: 36 100% 95%;
+    --accent-foreground: 36 95% 40%;
+
+    /* Destructive */
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 85% 97%;
+
+    /* Borders & Inputs */
+    --border: 36 20% 88%;
+    --input: 36 20% 88%;
+    --ring: 36 95% 49%;
+
+    --radius: 1.5rem;
+
+    /* Custom Design Tokens */
+    --charcoal: 192 33% 23%;
+    --cream: 40 100% 97%;
+    --sunset: 36 95% 49%;
+    --sage: 152 27% 59%;
+    --warm-gray: 36 10% 60%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(36 95% 49%), hsl(25 95% 53%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(40 60% 98%));
+    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(192 33% 23% / 0.85) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(40 100% 97%), hsl(36 100% 95%));
+
+    /* Shadows */
+    --shadow-soft: 0 4px 24px -4px hsl(36 30% 50% / 0.12);
+    --shadow-glow: 0 8px 40px -8px hsl(36 95% 49% / 0.35);
+    --shadow-card: 0 2px 20px -6px hsl(192 33% 23% / 0.08);
+    --shadow-warm: 0 12px 48px -12px hsl(36 95% 49% / 0.2);
+
+    /* Sidebar */
+    --sidebar-background: 40 100% 97%;
+    --sidebar-foreground: 192 33% 23%;
+    --sidebar-primary: 36 95% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 27% 59%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 36 20% 88%;
+    --sidebar-ring: 36 95% 49%;
+    --chart-1: 36 95% 49%;
+    --chart-2: 152 27% 59%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 45 93% 58%;
+    --chart-5: 192 33% 40%;
+    --sidebar: 40 60% 99%;
+
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --font-heading: 'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 2px 4px -1px hsl(0 0% 0% / 0.08);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 4px 6px -1px hsl(0 0% 0% / 0.08);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 8px 10px -1px hsl(0 0% 0% / 0.08);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.2);
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
+  }
+
+  .dark {
+    --background: 192 30% 10%;
+    --foreground: 40 60% 95%;
+
+    --card: 192 25% 14%;
+    --card-foreground: 40 60% 95%;
+
+    --popover: 192 25% 14%;
+    --popover-foreground: 40 60% 95%;
+
+    --primary: 36 95% 52%;
+    --primary-foreground: 192 30% 10%;
+
+    --secondary: 152 27% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 192 15% 25%;
+    --muted-foreground: 40 20% 70%;
+
+    --accent: 36 50% 18%;
+    --accent-foreground: 36 95% 60%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 85% 97%;
+
+    --border: 192 15% 22%;
+    --input: 192 15% 22%;
+    --ring: 36 95% 52%;
+
+    --sidebar-background: 192 25% 12%;
+    --sidebar-foreground: 40 60% 95%;
+    --sidebar-primary: 36 95% 52%;
+    --sidebar-primary-foreground: 192 30% 10%;
+    --sidebar-accent: 152 27% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 192 15% 22%;
+    --sidebar-ring: 36 95% 52%;
+    --chart-1: 36 95% 55%;
+    --chart-2: 152 27% 55%;
+    --chart-3: 25 95% 58%;
+    --chart-4: 45 93% 60%;
+    --chart-5: 192 33% 50%;
+    --sidebar: 192 25% 14%;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.1);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.1);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.15), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.15), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.15), 0 2px 4px -1px hsl(0 0% 0% / 0.15);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.15), 0 4px 6px -1px hsl(0 0% 0% / 0.15);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.15), 0 8px 10px -1px hsl(0 0% 0% / 0.15);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    @apply font-bold;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Card */
+  .glass-card {
+    @apply bg-card/90 backdrop-blur-xl border border-border/40 rounded-3xl;
+    box-shadow: var(--shadow-soft);
+  }
+
+  /* Hero Gradient Button - Pill shaped */
+  .btn-hero {
+    @apply relative overflow-hidden font-bold text-primary-foreground px-8 py-4 rounded-full transition-all duration-300;
+    background: var(--gradient-hero);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .btn-hero:hover {
+    @apply scale-105;
+    box-shadow: 0 12px 48px -8px hsl(36 95% 49% / 0.45);
+  }
+
+  /* Flavor Badge */
+  .flavor-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-secondary/15 text-secondary border border-secondary/25;
+  }
+
+  /* Match Score Badge */
+  .match-badge {
+    @apply inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold bg-primary/10 text-primary border border-primary/20;
+  }
+
+  /* Critical Step Indicator */
+  .step-critical {
+    @apply relative pl-4 border-l-4 border-primary bg-primary/5 rounded-r-2xl py-3 px-4;
+  }
+
+  /* Region Card - more rounded */
+  .region-card {
+    @apply relative overflow-hidden rounded-3xl p-6 cursor-pointer transition-all duration-300 border-2 border-transparent;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .region-card:hover {
+    @apply border-primary/30 scale-[1.02];
+    box-shadow: var(--shadow-glow);
+  }
+
+  .region-card.selected {
+    @apply border-primary bg-primary/5;
+  }
+
+  /* Tag Chip - Pill */
+  .tag-chip {
+    @apply inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-semibold cursor-pointer transition-all duration-200 border;
+  }
+
+  .tag-chip.inactive {
+    @apply bg-card text-muted-foreground border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30;
+  }
+
+  .tag-chip.active {
+    @apply bg-primary text-primary-foreground border-primary shadow-glow;
+  }
+
+  /* Ingredient Item */
+  .ingredient-item {
+    @apply flex items-center justify-between py-3 px-4 rounded-2xl transition-colors;
+  }
+
+  .ingredient-item:hover {
+    @apply bg-muted/40;
+  }
+
+  .ingredient-regenerated {
+    @apply bg-secondary/10 border-l-4 border-secondary;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background: var(--gradient-hero);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-warm {
+    box-shadow: var(--shadow-warm);
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-bounce-gentle {
+    animation: bounce-gentle 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce-gentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+}
