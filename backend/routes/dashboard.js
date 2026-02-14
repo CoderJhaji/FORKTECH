@@ -56,7 +56,7 @@ router.post("/", authMiddleware, async (req, res) => {
 router.put("/", authMiddleware, async (req, res) => {
   try {
     const { dietaryConstraints, allergies, availableIngredients, favoriteCuisines } = req.body;
-    
+
     console.log("PUT /dashboard for user:", req.userId, {
       dietaryConstraints: dietaryConstraints?.length,
       allergies: allergies?.length,
@@ -73,7 +73,7 @@ router.put("/", authMiddleware, async (req, res) => {
         ...(availableIngredients !== undefined && { availableIngredients }),
         ...(favoriteCuisines !== undefined && { favoriteCuisines }),
       },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     );
 
     console.log("✓ Dashboard updated");
@@ -112,7 +112,7 @@ router.post("/history", authMiddleware, async (req, res) => {
         },
         $inc: { totalDishes: 1 },
       },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     );
 
     console.log("✓ Dish added to history. Total dishes:", dashboard.totalDishes);

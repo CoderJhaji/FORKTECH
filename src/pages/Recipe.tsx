@@ -17,8 +17,8 @@ import { IngredientList } from "@/components/ui/IngredientList";
 import { SmartKitchenMode } from "@/components/ui/SmartKitchenMode";
 import { FlavorChart } from "@/components/ui/FlavorChart";
 import { CookingStep } from "@/lib/types";
-import { sampleRecipes } from "@/lib/mockData";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { recipeAPI } from "@/lib/api";
 
 /** Parse duration in minutes from step text (e.g. "for 10 minutes", "5 min"). */
 function parseDurationFromText(text: string): number | undefined {
@@ -41,7 +41,7 @@ function normalizeSteps(steps: any[] | undefined): CookingStep[] {
         isCritical: step.isCritical ?? false,
       };
     }
-    const text = step.text ?? "";
+    const text = step.text ?? step.step ?? "";
     return {
       id: step.number ?? index + 1,
       instruction: text,
@@ -60,31 +60,78 @@ const Recipe = () => {
   const [isSmartKitchenMode, setIsSmartKitchenMode] = useState(false);
 
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-    if (id === "generated") {
-      const stored = sessionStorage.getItem("generatedRecipe");
-      if (!stored) {
-        navigate("/dashboard");
+    const fetchRecipe = async () => {
+      if (!id) {
+        setLoading(false);
         return;
       }
-      try {
-        const parsed = JSON.parse(stored);
-        setRecipe(parsed);
-      } catch (err) {
-        console.error("Failed to parse recipe:", err);
-        navigate("/dashboard");
+      if (id === "generated") {
+        const stored = sessionStorage.getItem("generatedRecipe");
+        if (!stored) {
+          navigate("/dashboard");
+          return;
+        }
+        try {
+          const parsed = JSON.parse(stored);
+          setRecipe(parsed);
+        } catch (err) {
+          console.error("Failed to parse recipe:", err);
+          navigate("/dashboard");
+        }
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-      return;
-    }
-    const featured = sampleRecipes.find((r) => r.id === id);
-    if (featured) {
-      setRecipe(featured);
-    }
-    setLoading(false);
+
+      try {
+        // Fetch recipe details
+        // Note: The API response structure for search-recipe might need mapping
+        const response: any = await recipeAPI.getRecipeById(id, "");
+        if (response) {
+
+          // Try to fetch instructions separately if needed
+          let instructions = [];
+          try {
+            const instrResponse = await recipeAPI.getInstructions(id, "");
+            // instrResponse might be { instructions: [...] } or just [...]
+            instructions = Array.isArray(instrResponse) ? instrResponse : (instrResponse.instructions || []);
+          } catch (e) {
+            console.log("No instructions found or failed to fetch", e);
+          }
+
+          // Map API response to UI model
+          // Assuming response is the raw JSON from Foodoscope
+          const r = response.recipe || response; // Handle if backend allows direct pass-through
+
+          const mappedRecipe = {
+            id: r.recipe_id || r._id || id,
+            title: r.Recipe_title || r.title,
+            description: r.Description || `A recipe for ${r.Recipe_title || r.title}`,
+            matchScore: 90, // mock
+            region: r.Sub_region || r.Region || "Unknown",
+            dietaryTags: [],
+            totalTime: Number(r.total_time) || 45,
+            difficulty: "Medium",
+            servings: Number(r.servings) || 4,
+            flavorProfile: null,
+            ingredients: (r.ingredients || []).map((i: any) => ({
+              name: i.name || i, // ingredients might be strings or objects
+              amount: i.quantity || "some"
+            })),
+            steps: instructions.map((text: string, idx: number) => ({
+              number: idx + 1,
+              text
+            }))
+          };
+          setRecipe(mappedRecipe);
+        }
+      } catch (error) {
+        console.error("Failed to fetch recipe:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipe();
   }, [id, navigate]);
 
   const cookingSteps = useMemo(() => normalizeSteps(recipe?.steps), [recipe?.steps]);

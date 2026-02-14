@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Database, Beaker, Globe, Sparkles, ChefHat } from "lucide-react";
@@ -5,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { RecipeCard } from "@/components/ui/RecipeCard";
-import { sampleRecipes } from "@/lib/mockData";
+import { recipeAPI } from "@/lib/api";
+import { Recipe } from "@/lib/types";
 import heroImage from "@/assets/hero-food.jpg";
 
 const features = [
@@ -30,6 +32,49 @@ const features = [
 ];
 
 const Index = () => {
+  const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        // Fetch Indian dishes as default featured
+        const response = await recipeAPI.getRecipesByCuisine("Indian Subcontinent", {
+          continent: "Asian",
+          subRegion: "Indian",
+          page: 1,
+          pageSize: 6
+        }, ""); // Empty token for public access
+
+        if (response && response.data) {
+          const mapped = response.data.map((r: any) => ({
+            id: r.recipe_id || r._id,
+            title: r.Recipe_title || r.title || "Untitled Recipe",
+            description: r.Description || `A delicious ${r.Sub_region || r.Region || "Asian"} dish.`,
+            matchScore: 95, // Default for featured
+            region: r.Sub_region || r.Region || "Indian",
+            dietaryTags: [],
+            totalTime: Number(r.total_time) || 45,
+            difficulty: "Medium",
+            servings: Number(r.servings) || 4,
+            flavorProfile: { // Mock profile if missing
+              sweet: 30, salty: 40, sour: 20, bitter: 10, umami: 60, spicy: 50
+            },
+            ingredients: [],
+            steps: []
+          }));
+          setFeaturedRecipes(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch featured recipes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -63,7 +108,7 @@ const Index = () => {
               Flavor Science Meets Culinary Art
             </motion.span>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold text-background mb-6 leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold text-background mb-6 leading-[1.1]">
               Don't just substitute.
               <br />
               <span>Regenerate.</span>
@@ -164,16 +209,18 @@ const Index = () => {
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-heading font-extrabold mb-4">
-              Featured Regenerations
+              Featured from Foodoscope
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              See how we've transformed popular dishes for different dietary needs.
+              Explore authentic dishes from our extensive database.
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {sampleRecipes.length > 0 ? (
-              sampleRecipes.map((recipe, index) => (
+            {loading ? (
+              <p className="text-muted-foreground py-8 w-full text-center col-span-full">Loading recipes...</p>
+            ) : featuredRecipes.length > 0 ? (
+              featuredRecipes.map((recipe, index) => (
                 <motion.div
                   key={recipe.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -184,7 +231,7 @@ const Index = () => {
                 </motion.div>
               ))
             ) : (
-              <p className="text-muted-foreground py-8 w-full text-center col-span-full">No featured recipes yet.</p>
+              <p className="text-muted-foreground py-8 w-full text-center col-span-full">No featured recipes found.</p>
             )}
           </div>
         </div>

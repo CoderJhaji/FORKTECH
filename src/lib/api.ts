@@ -3,7 +3,7 @@ const API_BASE_URL = "http://localhost:5001/api";
 const handleResponse = async (response: Response) => {
   const contentType = response.headers.get("content-type");
   let data;
-  
+
   if (contentType?.includes("application/json")) {
     data = await response.json();
   } else {
@@ -152,7 +152,7 @@ export const dashboardAPI = {
 export const recipeAPI = {
   generateRecipe: async (
     token: string,
-    dishName: string,
+    title: string,
     dietaryConstraints: string[] = [],
     allergies: string[] = [],
     availableIngredients: string[] = []
@@ -165,7 +165,7 @@ export const recipeAPI = {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          dishName,
+          title,
           dietaryConstraints,
           allergies,
           availableIngredients,
@@ -177,6 +177,68 @@ export const recipeAPI = {
       if (error instanceof TypeError) {
         throw new Error("Network error - is the server running on port 5001?");
       }
+      throw error;
+    }
+  },
+
+  getRecipeById: async (id: string, token?: string) => {
+    try {
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(`${API_BASE_URL}/recipe/search/${id}`, {
+        method: "GET",
+        headers,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getRecipesByCuisine: async (region: string, filters: any = {}, token?: string) => {
+    try {
+      const queryParams = new URLSearchParams(filters).toString();
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(`${API_BASE_URL}/recipe/cuisine/${region}?${queryParams}`, {
+        method: "GET",
+        headers,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getRecipesByIngredients: async (excludeIngredients: string, excludeCategories: string, token?: string) => {
+    try {
+      const queryParams = new URLSearchParams({ excludeIngredients, excludeCategories }).toString();
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(`${API_BASE_URL}/recipe/ingredients?${queryParams}`, {
+        method: "GET",
+        headers,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getInstructions: async (id: string, token?: string) => {
+    try {
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(`${API_BASE_URL}/recipe/instructions/${id}`, {
+        method: "GET",
+        headers,
+      });
+      return await handleResponse(response);
+    } catch (error) {
       throw error;
     }
   },

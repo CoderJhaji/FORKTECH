@@ -1,33 +1,28 @@
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 async function test() {
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OGYyZDY0Y2ZlYWQwNWI1M2NlYjA1ZSIsImlhdCI6MTc3MDk5MDk0OCwiZXhwIjoxNzcxNTk1NzQ4fQ.1h5ElgqLeavQl1g5bFoG50PiQ04m0ZfxCIAqIcPP3Yo';
-  
-  console.log('Testing recipe generation API...');
-  
-  const res = await fetch('http://localhost:5001/api/recipe/generate', {
-    method: 'POST',
+  console.log("Testing recipe API (no auth)...");
+
+  const res = await fetch("http://localhost:5001/api/recipe/generate", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      dishName: 'Butter Chicken',
-      dietaryConstraints: [],
-      allergies: [],
-      availableIngredients: []
-    })
+      dishName: "Butter Chicken",
+    }),
   });
-  
+
   const data = await res.json();
-  console.log('Status:', res.status);
-  console.log('Message:', data.message);
-  if (data.recipe) {
-    console.log('Recipe Title:', data.recipe.title);
-    console.log('Ingredients Count:', data.recipe.ingredients.length);
-    console.log('First Ingredient:', data.recipe.ingredients[0]);
+
+  console.log("HTTP Status:", res.status);
+  console.log("Response:", JSON.stringify(data, null, 2));
+
+  if (res.ok && data.recipe) {
+    console.log("✅ Recipe title:", data.recipe.title);
+    console.log("✅ Ingredients:", data.recipe.ingredients.length);
   } else {
-    console.log('Error:', data);
+    console.log("❌ API failed");
   }
 }
 
