@@ -155,12 +155,12 @@ const Index = () => {
       </section>
 
       {/* Featured Regenerations - Horizontal Scroll */}
-      <section className="py-24 bg-accent/30">
+      <section className="py-24 bg-accent/30 scroll-mt-20" id="featured-recipes">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-heading font-extrabold mb-4">
@@ -171,12 +171,21 @@ const Index = () => {
             </p>
           </motion.div>
 
-          <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-            {sampleRecipes.map((recipe, index) => (
-              <div key={recipe.id} className="min-w-[340px] md:min-w-[380px] snap-center">
-                <RecipeCard recipe={recipe} index={index} />
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {sampleRecipes.length > 0 ? (
+              sampleRecipes.map((recipe, index) => (
+                <motion.div
+                  key={recipe.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <RecipeCard recipe={recipe} index={index} />
+                </motion.div>
+              ))
+            ) : (
+              <p className="text-muted-foreground py-8 w-full text-center col-span-full">No featured recipes yet.</p>
+            )}
           </div>
         </div>
       </section>

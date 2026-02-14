@@ -37,8 +37,12 @@ export function SmartKitchenMode({ steps, onClose }: SmartKitchenModeProps) {
       return () => clearInterval(interval);
     } else if (timerSeconds === 0) {
       setIsTimerRunning(false);
+      setTimerSeconds(null);
+      if (currentIndex < steps.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      }
     }
-  }, [isTimerRunning, timerSeconds]);
+  }, [isTimerRunning, timerSeconds, currentIndex, steps.length]);
 
   useEffect(() => {
     setTimerSeconds(null);
