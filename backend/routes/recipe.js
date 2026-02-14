@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const foodoscopeService = require("../services/foodoscopeService");
+const spoonacularService = require("../services/spoonacularService");
 const flavorDbService = require("../services/flavorDbService");
 const apiConfig = require("../config/apiConfig");
 const authMiddleware = require("../middleware/authmiddleware");
@@ -10,11 +11,9 @@ const authMiddleware = require("../middleware/authmiddleware");
  * POST /api/recipe/generate
  *
  * Actual behavior:
- * - Fetch a real recipe from Foodoscope (RecipeDB2)
- * - Fetch flavor data for one key ingredient from FlavorDB2
+ * - Fetch a real recipe from Spoonacular (with complete ingredients & instructions)
+ * - Fallback to Foodoscope if Spoonacular fails
  * - Return a clean, frontend-friendly recipe object
- *
- * NO recipe generation happens here.
  */
 router.post("/generate", authMiddleware, async (req, res) => {
   try {
@@ -24,97 +23,123 @@ router.post("/generate", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "title is required" });
     }
 
-    // 1️⃣ Fetch recipes from Foodoscope using recipesinfo endpoint (has complete data)
-    let recipePayload;
+    // 1️⃣ Try Spoonacular first (has complete data with ingredients)
+    let recipe;
     try {
-      // Fetch a batch of recipes (we'll search for matching title)
-      const recipesData = await foodoscopeService.fetchRecipesInfo(1, 50);
+      console.log("🔍 Searching Spoonacular for:", title);
+      const spoonData = await spoonacularService.searchRecipes(title.trim(), 1);
 
-      if (!recipesData.payload || !recipesData.payload.data || recipesData.payload.data.length === 0) {
-        return res.status(404).json({
-          message: "No recipes found",
+      if (spoonData.results && spoonData.results.length > 0) {
+        const spoonRecipe = spoonData.results[0];
+
+        // Get detailed information if needed
+        let detailedRecipe = spoonRecipe;
+        if (!spoonRecipe.extendedIngredients || !spoonRecipe.analyzedInstructions) {
+          detailedRecipe = await spoonacularService.getRecipeInformation(spoonRecipe.id);
+        }
+
+        // Extract ingredients
+        const ingredients = (detailedRecipe.extendedIngredients || []).map(ing => ({
+          name: ing.name || ing.original,
+          amount: ing.measures?.metric?.amount
+            ? `${ing.measures.metric.amount} ${ing.measures.metric.unitShort}`
+            : ing.amount
+              ? `${ing.amount} ${ing.unit}`
+              : ""
+        }));
+
+        // Extract instructions
+        let steps = [];
+        if (detailedRecipe.analyzedInstructions && detailedRecipe.analyzedInstructions.length > 0) {
+          steps = detailedRecipe.analyzedInstructions[0].steps.map(step => ({
+            number: step.number,
+            text: step.step
+          }));
+        } else if (detailedRecipe.instructions) {
+          // Fallback to plain text instructions
+          const instructionLines = detailedRecipe.instructions.split(/\.\s+|\n/).filter(s => s.trim());
+          steps = instructionLines.map((text, index) => ({
+            number: index + 1,
+            text: text.trim()
+          }));
+        }
+
+        recipe = {
+          id: detailedRecipe.id,
+          title: detailedRecipe.title,
+          description: detailedRecipe.summary?.replace(/<[^>]*>/g, '') || `A delicious ${detailedRecipe.title} recipe`,
+          totalTime: detailedRecipe.readyInMinutes || 45,
+          cookTime: detailedRecipe.cookingMinutes || 30,
+          prepTime: detailedRecipe.preparationMinutes || 15,
+          servings: detailedRecipe.servings || 4,
+          calories: detailedRecipe.nutrition?.nutrients?.find(n => n.name === "Calories")?.amount || "N/A",
+          ingredients,
+          steps,
+          source: "Spoonacular"
+        };
+
+        console.log("✅ Got recipe from Spoonacular with", ingredients.length, "ingredients and", steps.length, "steps");
+      }
+    } catch (spoonError) {
+      console.warn("⚠️ Spoonacular failed, falling back to Foodoscope:", spoonError.message);
+    }
+
+
+    // 2️⃣ Fallback to Foodoscope if Spoonacular failed
+    if (!recipe) {
+      console.log("📡 Falling back to Foodoscope...");
+      try {
+        const recipesData = await foodoscopeService.fetchRecipesInfo(1, 10);
+
+        if (recipesData.payload && recipesData.payload.data && recipesData.payload.data.length > 0) {
+          const recipePayload = recipesData.payload.data[0];
+          const recipeId = recipePayload.Recipe_id;
+
+          // Fetch instructions
+          let steps = [];
+          if (recipeId) {
+            try {
+              const instrData = await foodoscopeService.fetchInstructions(recipeId);
+              steps = (instrData.steps || []).map((text, index) => ({
+                number: index + 1,
+                text: typeof text === 'string' ? text : (text.step || text.instruction || "")
+              }));
+            } catch (e) {
+              console.warn("Failed to fetch Foodoscope instructions:", e.message);
+            }
+          }
+
+          recipe = {
+            id: recipeId,
+            title: recipePayload.Recipe_title || title,
+            description: `Recipe from ${recipePayload.Region || recipePayload.Continent || "unknown region"}`,
+            totalTime: Number(recipePayload.total_time) || 45,
+            cookTime: Number(recipePayload.cook_time) || 30,
+            prepTime: Number(recipePayload.prep_time) || 15,
+            servings: Number(recipePayload.servings) || 4,
+            calories: Number(recipePayload.Calories) || "N/A",
+            ingredients: [
+              { name: "Ingredients not available - Foodoscope API limitation", amount: "" }
+            ],
+            steps,
+            source: "Foodoscope"
+          };
+
+          console.log("✅ Got recipe from Foodoscope with", steps.length, "steps (no ingredients available)");
+        }
+      } catch (foodError) {
+        console.error("❌ Both APIs failed:", foodError.message);
+        return res.status(502).json({
+          message: "Failed to fetch recipe from all sources",
         });
       }
+    }
 
-      // Search for a recipe matching the title (case-insensitive)
-      const searchTitle = title.trim().toLowerCase();
-      recipePayload = recipesData.payload.data.find(r =>
-        r.Recipe_title && r.Recipe_title.toLowerCase().includes(searchTitle)
-      );
-
-      // If no exact match, just use the first recipe
-      if (!recipePayload) {
-        console.log(`No exact match for "${title}", using first available recipe`);
-        recipePayload = recipesData.payload.data[0];
-      }
-
-    } catch (e) {
-      console.error("Foodoscope error:", e.message);
-      return res.status(502).json({
-        message: "Failed to fetch recipe from Foodoscope",
+    if (!recipe) {
+      return res.status(404).json({
+        message: "No recipes found",
       });
     }
-
-    if (!recipePayload) {
-      return res.status(502).json({
-        message: "Failed to fetch valid recipe data from Foodoscope",
-      });
-    }
-
-    const recipeId = recipePayload.Recipe_id || recipePayload.recipe_id || recipePayload._id;
-
-    // Extract instructions and ingredients from the payload
-    let instructions = recipePayload.instructions || recipePayload.steps || [];
-    let ingredients = recipePayload.ingredients || [];
-
-    // 2️⃣ FlavorDB (optional, safe)
-    let flavorData = null;
-
-    if (
-      apiConfig.flavorDb.baseUrl &&
-      recipePayload.ingredients &&
-      recipePayload.ingredients.length > 0
-    ) {
-      try {
-        const rawIngredient =
-          typeof recipePayload.ingredients[0] === "string"
-            ? recipePayload.ingredients[0]
-            : recipePayload.ingredients[0].name;
-
-        const cleanIngredient = rawIngredient
-          .toLowerCase()
-          .trim();
-
-        flavorData =
-          await flavorDbService.getFlavorPairing(cleanIngredient);
-      } catch (e) {
-        console.warn("FlavorDB skipped:", e.message);
-      }
-    }
-
-    // 3️⃣ Normalize response for frontend
-    const recipe = {
-      id: recipeId,
-      title:
-        recipePayload.Recipe_title ||
-        recipePayload.title ||
-        title,
-      description: `Recipe from ${recipePayload.Region || recipePayload.Continent || "unknown region"}`,
-      totalTime: Number(recipePayload.total_time) || 45,
-      cookTime: Number(recipePayload.cook_time) || 30,
-      prepTime: Number(recipePayload.prep_time) || 15,
-      servings: Number(recipePayload.servings) || 4,
-      calories: Number(recipePayload.Calories) || "N/A",
-      ingredients: (ingredients || []).map((i) => ({
-        name: typeof i === "string" ? i : (i.name || i.originalName || i.ingredient || "Unknown Ingredient"),
-        amount: typeof i === "object" ? (i.quantity || i.amount || "") : ""
-      })),
-      steps: instructions.map((step, index) => ({
-        number: index + 1,
-        text: typeof step === 'string' ? step : (step.step || step.instruction || ""),
-      })),
-      flavorData, // optional, may be null
-    };
 
     return res.status(200).json({
       message: "Recipe fetched successfully",
