@@ -23,7 +23,7 @@
     "vite_react_shadcn_ts": "file:.."
   },
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
